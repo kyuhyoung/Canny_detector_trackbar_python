@@ -1,4 +1,5 @@
 import cv2
+import sys
 
 
 m2_fn_m1_dir_p1_vid_p2_cam = 0
@@ -31,7 +32,7 @@ def main(fn_or_dir_or_vid_or_cam):
     m2_fn_m1_dir_p1_vid_p2_cam = 0
     if m2_fn_m1_dir_p1_vid_p2_cam > 0:
         cap = cv2.VideoCapture(fn_or_dir_or_vid_or_cam)
-        if !cap.isOpened():        
+        if not cap.isOpened():        
             print('Can NOT open video or camera for : ', fn_or_dir_or_vid_or_cam)
             exit()
         print('width: {}, height : {}'.format(cap.get(3), cap.get(4)))
@@ -41,7 +42,7 @@ def main(fn_or_dir_or_vid_or_cam):
     
     elif -1 == m2_fn_m1_dir_p1_vid_p2_cam:
         li_path_img = get_list_of_image_path_under_this_directory(fn_or_dir_or_vid_or_cam)
-        n_frm = len(li_path_img):
+        n_frm = len(li_path_img)
         if 0 == n_frm:
             print('There is no image file under the directory : ', fn_or_dir_or_vid_or_cam)
             exit()
@@ -50,6 +51,7 @@ def main(fn_or_dir_or_vid_or_cam):
         im = cv2.imread(fn_or_dir_or_vid_or_cam, cv2.IMREAD_UNCHANGED)
 
 
+    n_chn = len(im.shape)
     cv2.namedWindow("Canny Edge")
     if n_frm:
         cv2.createTrackbar('# frame', 'Canny Edge', 0, n_frm, go_2_frame)
@@ -60,16 +62,26 @@ def main(fn_or_dir_or_vid_or_cam):
     cv2.setTrackbarPos('low threshold', 'Canny Edge', 50)
     cv2.setTrackbarPos('high threshold', 'Canny Edge', 150)
 
-    cv2.imshow("Original", img_gray)
+    if -2 == m2_fn_m1_dir_p1_vid_p2_cam:
+        cv2.imshow("Original", im)
+        if 1 == n_chn:
+            im_gray = im
+        elif 3 == n_chn:
+            im_gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
 
     while True:
+        if -2 != m2_fn_m1_dir_p1_vid_p2_cam:
+            if 1 == n_chn:
+                im_gray = im
+            elif 3 == n_chn:
+                im_gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+            cv2.imshow("Original", im)
 
         low = cv2.getTrackbarPos('low threshold', 'Canny Edge')
         high = cv2.getTrackbarPos('high threshold', 'Canny Edge')
         i_frm = cv2.getTrackbarPos('# frame', 'Canny Edge')
-
-        img_canny = cv2.Canny(img_gray, low, high)
-        cv2.imshow("Canny Edge", img_canny)
+        im_canny = cv2.Canny(im_gray, low, high)
+        cv2.imshow("Canny Edge", im_canny)
 
         if cv2.waitKey(1)&0xFF == 27:
             break
